@@ -1,6 +1,7 @@
 
 streamlit
-openai-whisper
+faster-whisper
+ctranslate2
 librosa
 matplotlib
 soundfile

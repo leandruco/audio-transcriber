@@ -1,15 +1,14 @@
 
 import streamlit as st
-import whisper
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import tempfile
 import numpy as np
-import soundfile as sf
+from faster_whisper import WhisperModel
 
 st.set_page_config(layout="wide")
-st.title("🔊 Transcrição e Espectrograma com Whisper")
+st.title("🔊 Transcrição e Espectrograma com Faster Whisper")
 
 uploaded_file = st.file_uploader("Faça upload de um arquivo de áudio", type=["wav", "mp3", "m4a"])
 if uploaded_file is not None:
@@ -19,11 +18,11 @@ if uploaded_file is not None:
 
     st.audio(tmp_path)
 
-    st.text("🔁 Carregando modelo Whisper...")
-    model = whisper.load_model("base")
+    st.text("🔁 Carregando modelo Faster Whisper...")
+    model = WhisperModel("base", compute_type="int8")
 
     st.text("🧠 Transcrevendo com timestamps...")
-    result = model.transcribe(tmp_path, word_timestamps=True)
+    segments, info = model.transcribe(tmp_path, word_timestamps=True)
 
     st.text("🎼 Carregando áudio e gerando espectrograma...")
     y, sr = librosa.load(tmp_path)
@@ -31,8 +30,13 @@ if uploaded_file is not None:
     S_dB = librosa.amplitude_to_db(np.abs(S), ref=np.max)
 
     words = []
-    for seg in result["segments"]:
-        words.extend(seg["words"])
+    for segment in segments:
+        for word in segment.words:
+            words.append({
+                "start": word.start,
+                "end": word.end,
+                "text": word.word
+            })
 
     # Busca de palavra
     search_word = st.text_input("🔍 Buscar palavra na transcrição (sensível a maiúsculas/minúsculas)")
