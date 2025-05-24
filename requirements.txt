@@ -3,5 +3,5 @@ streamlit
 faster-whisper
 ctranslate2
 librosa
-matplotlib
+plotly
 soundfile
